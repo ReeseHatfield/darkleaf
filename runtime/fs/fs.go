@@ -7,7 +7,9 @@ import (
 )
 
 func FileExists(path string) (bool, error) {
-	_, err := os.Stat(path)
+	expandedPath := os.ExpandEnv(path)
+
+	_, err := os.Stat(expandedPath)
 	if err == nil {
 		return true, nil
 	}
@@ -18,12 +20,12 @@ func FileExists(path string) (bool, error) {
 }
 
 func RootMkdirP(dirPath string) error {
-	absPath, err := filepath.Abs(dirPath)
+	expandedPath := os.ExpandEnv(dirPath)
+	absPath, err := filepath.Abs(expandedPath)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
-	// mkdir w parents (mkdir -p)
 	err = os.MkdirAll(absPath, 0755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %v", err)

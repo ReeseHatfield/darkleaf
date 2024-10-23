@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ReeseHatfield/runtime/core"
 	"github.com/ReeseHatfield/runtime/fs"
 	sec "github.com/ReeseHatfield/runtime/key"
-	nix "github.com/ReeseHatfield/runtime/unix"
 )
 
 /*
@@ -39,11 +39,6 @@ var (
 
 func main() {
 
-	if !nix.IsRoot() {
-		fmt.Println("deakleaf must be ran as root, try using sudo")
-		os.Exit(1)
-	}
-
 	var key string
 
 	if !isInited() {
@@ -65,10 +60,19 @@ func main() {
 	}
 
 	fmt.Printf("key: %v\n", key)
+
+	conf := core.Config{
+		Key: key,
+	}
+
+	core := core.NewCore(conf)
+
+	core.Run()
+
 }
 
 func darkleafInit() string {
-	err := fs.RootMkdirP("/var/darkleaf")
+	err := fs.RootMkdirP("$HOME/.darkleaf")
 
 	if err != nil {
 		fmt.Println("Could not init darkleaf")
@@ -88,11 +92,10 @@ func darkleafInit() string {
 	}
 
 	return key
-
 }
 
 func isInited() bool {
-	exists, err := fs.FileExists("/var/darkleaf")
+	exists, err := fs.FileExists("$HOME/.darkleaf")
 	if err != nil {
 		//probably unsupport os? fixme
 

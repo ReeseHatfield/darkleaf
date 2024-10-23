@@ -6,27 +6,32 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: true, 
+      contextIsolation: false, 
     },
   });
 
-  win.loadURL(`file://${path.join(__dirname, 'index.html')}`);
+  win.setMenu(null)
+
+  win.loadFile(path.join(__dirname, 'index.html'));
+
+  // fancy ipc message passing
+  win.webContents.on('did-finish-load', () => {
+    const flags = process.argv.slice(2) // skip node and electron args
+    win.webContents.send('send-args', flags)
+  })
 }
 
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    // do some extra stuff here to ensure save and encrpyt
     app.quit();
   }
 });
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    // ensure key and stuff
     createWindow();
   }
 });

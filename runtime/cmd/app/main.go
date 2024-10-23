@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/ReeseHatfield/runtime/fs"
-	"github.com/ReeseHatfield/runtime/security"
+	sec "github.com/ReeseHatfield/runtime/key"
+	nix "github.com/ReeseHatfield/runtime/unix"
 )
 
 /*
@@ -32,36 +33,62 @@ Will need to spin up sub processes
 */
 
 var (
-	initFlag   string
-	runFlag    string
+	runFlag    bool
 	decodeFlag string
 )
 
 func main() {
 
-	if !security.IsRoot() {
+	if !nix.IsRoot() {
 		fmt.Println("deakleaf must be ran as root, try using sudo")
 		os.Exit(1)
 	}
 
+	var key string
+
 	if !isInited() {
+
 		fmt.Println("Projected has NOT already been inited")
 		fmt.Println("Setting up darkleaf...")
-		darkleafInit()
+		key = darkleafInit()
 		fmt.Println("Darkleaf setup complete")
+
+	} else {
+
+		serial, err := sec.GetSerialFromUser("Select your key.")
+		if err != nil {
+			fmt.Errorf("Could not key kehy from user")
+			os.Exit(1)
+		}
+
+		key = sec.Hash(serial)
 	}
 
+	fmt.Printf("key: %v\n", key)
 }
 
-func darkleafInit() {
+func darkleafInit() string {
 	err := fs.RootMkdirP("/var/darkleaf")
 
-	// do any other configuration setup that needs done here
 	if err != nil {
 		fmt.Println("Could not init darkleaf")
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+	fmt.Println("\033[34m" + "WELCOME TO DARKLEAF")
+
+	serial, err := sec.GetSerialFromUser("Select a new device to use as your key.")
+	key := sec.Hash(serial)
+
+	if err != nil {
+		fmt.Println("Could not init darkleaf")
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	return key
+
 }
 
 func isInited() bool {
